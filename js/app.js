@@ -1,4 +1,5 @@
 import { WORDS, LESSONS, STAGES } from './data.js';
+import { ic, drawing } from './icons.js';
 
 // ---------- État sauvegardé sur le téléphone ----------
 
@@ -132,14 +133,14 @@ function wordRow(id) {
       ${S.settings.translit ? `<span class="tr">${esc(w.tr)}</span>` : ''}
       <span class="fr">${esc(w.fr)}</span>
     </button>
-    <button class="star ${on ? 'on' : ''}" data-star="${id}" aria-label="${on ? 'Retirer des mots difficiles' : 'Marquer comme difficile'}">${on ? '★' : '☆'}</button>
+    <button class="star ${on ? 'on' : ''}" data-star="${id}" aria-label="${on ? 'Retirer des mots difficiles' : 'Marquer comme difficile'}">${ic('star', { filled: on })}</button>
   </div>`;
 }
 
 function lineCard(l, keep, extra = '') {
   return `<div class="line">
     ${l.who ? `<div class="who">${esc(l.who)}</div>` : ''}
-    <button class="say" data-say-text="${esc(l.he)}">${he(heOf(l.he, keep))} 🔊</button>
+    <button class="say" data-say-text="${esc(l.he)}">${ic('volume', { size: 20 })}${he(heOf(l.he, keep))}</button>
     ${S.settings.translit ? `<div class="tr">${esc(l.tr)}</div>` : ''}
     <details><summary>Traduction</summary>${esc(l.fr)}</details>
     ${extra}
@@ -293,18 +294,18 @@ function paint({ title, body, dock = '', focus = false, back = null, tab = null 
   const due = dueToday();
   app.innerHTML = `
     <header class="top">
-      ${back ? `<button class="icon-btn" data-go="${back}" aria-label="Retour">←</button>` : ''}
+      ${back ? `<button class="icon-btn" data-go="${back}" aria-label="Retour">${ic('back')}</button>` : ''}
       <h1>${title}</h1>
-      <button class="icon-btn" data-act="note" aria-label="Noter une remarque">💬</button>
-      <button class="icon-btn" data-act="mute" aria-label="${S.settings.muted ? 'Réactiver le son' : 'Couper le son'}">${S.settings.muted ? '🔇' : '🔊'}</button>
+      <button class="icon-btn" data-act="note" aria-label="Noter une remarque">${ic('message')}</button>
+      <button class="icon-btn" data-act="mute" aria-label="${S.settings.muted ? 'Réactiver le son' : 'Couper le son'}">${ic(S.settings.muted ? 'mute' : 'volume')}</button>
     </header>
     <main>${body}</main>
     ${dock ? `<div class="dock">${dock}</div>` : ''}
     <nav class="tabbar">
-      <a href="#/" class="${tab === 'p' ? 'on' : ''}"><span>🧭</span>Parcours</a>
-      <a href="#/revisions" class="${tab === 'r' ? 'on' : ''}"><span>🔁</span>Révisions${due ? `<em class="badge">${due}</em>` : ''}</a>
-      <a href="#/mots/difficiles" class="${tab === 'm' ? 'on' : ''}"><span>⭐</span>Mots</a>
-      <a href="#/reglages" class="${tab === 's' ? 'on' : ''}"><span>⚙️</span>Réglages</a>
+      <a href="#/" class="${tab === 'p' ? 'on' : ''}">${ic('book', { filled: tab === 'p', size: 26 })}Parcours</a>
+      <a href="#/revisions" class="${tab === 'r' ? 'on' : ''}">${ic('repeat', { filled: tab === 'r', size: 26 })}Révisions${due ? `<em class="badge">${due}</em>` : ''}</a>
+      <a href="#/mots/difficiles" class="${tab === 'm' ? 'on' : ''}">${ic('star', { filled: tab === 'm', size: 26 })}Mots</a>
+      <a href="#/reglages" class="${tab === 's' ? 'on' : ''}">${ic('sliders', { filled: tab === 's', size: 26 })}Réglages</a>
     </nav>`;
   window.scrollTo(0, 0);
 }
@@ -317,23 +318,25 @@ route(/^\/$/, () => {
   const due = dueToday();
   const nxt = nextLesson();
   let body = `<div class="card"><div class="stat">
-      <div><b>🔥 ${streak}</b><span class="muted small">${streak > 1 ? "jours d'affilée" : "jour d'affilée"}</span></div>
+      <div><b>${ic('flame', { cls: 'flame', filled: streak > 0, size: 26 })}${streak}</b><span class="muted small">${streak > 1 ? "jours d'affilée" : "jour d'affilée"}</span></div>
       <div><b>${Math.min(n, DAILY_GOAL)}/${DAILY_GOAL}</b><span class="muted small">réponses aujourd'hui</span>
         <div class="meter"><i style="width:${Math.min(100, n / DAILY_GOAL * 100)}%"></i></div></div>
     </div></div>`;
 
   if (S.resume && LESSONS[S.resume.lesson] && !S.lessons[S.resume.lesson]) {
-    body += `<a class="card link tip" href="#/lecon/${S.resume.lesson}/${S.resume.step}">
-      <h2>▶ Reprendre</h2><p>${esc(LESSONS[S.resume.lesson].title)}</p></a>`;
+    body += `<a class="card link" href="#/lecon/${S.resume.lesson}/${S.resume.step}">
+      <span class="round">${ic('play', { filled: true, size: 18 })}</span>
+      <span class="grow"><p class="eyebrow">Reprendre</p><h2>${esc(LESSONS[S.resume.lesson].title)}</h2></span>${ic('chevron')}</a>`;
   }
   if (due) {
-    body += `<a class="card link" href="#/revisions"><h2>🔁 ${plural(due, 'carte à revoir', 'cartes à revoir')}</h2>
-      <p class="muted small">Un bloc de ${BLOCK} questions, environ 3 minutes.</p></a>`;
+    body += `<a class="card link" href="#/revisions"><span class="round">${ic('repeat', { size: 20 })}</span>
+      <span class="grow"><h2>${plural(due, 'carte à revoir', 'cartes à revoir')}</h2>
+      <p class="muted small">Un bloc de ${BLOCK} questions, environ 3 minutes.</p></span>${ic('chevron')}</a>`;
   }
 
   for (const st of STAGES) {
     const done = st.lessons.filter(l => S.lessons[l]).length;
-    body += `<h2 style="margin:20px 0 4px">${esc(st.title)}</h2>
+    body += `<h2 class="stage-title">${esc(st.title)}</h2>
       <p class="muted small" style="margin:0 0 10px">Objectif : ${esc(st.goal)} · ${done}/${st.lessons.length} leçons</p>`;
     st.lessons.forEach((lid, i) => {
       const l = LESSONS[lid];
@@ -341,19 +344,21 @@ route(/^\/$/, () => {
       const open = isUnlocked(lid);
       const cls = isDone ? 'done' : lid === nxt ? 'next' : open ? '' : 'locked';
       body += `<a class="lesson ${cls}" ${open ? `href="#/lecon/${lid}/fiche"` : 'data-locked="1"'}>
-        <span class="num">${isDone ? '✓' : i + 1}</span>
+        <span class="num">${isDone ? ic('check', { size: 18 }) : i + 1}</span>
         <span class="txt"><b>${esc(l.title)}</b><small>${esc(l.summary)}</small></span>
-        <span>${open ? '›' : '🔒'}</span></a>`;
+        ${ic(open ? 'chevron' : 'lock', { size: 20 })}</a>`;
     });
     const allDone = done === st.lessons.length;
     body += `<a class="lesson ${S.stages[st.id] ? 'done' : allDone ? 'next' : 'locked'}" ${allDone ? `href="#/bilan/${st.id}"` : 'data-locked="1"'}>
-      <span class="num">${S.stages[st.id] ? '✓' : '🏁'}</span>
+      <span class="num">${ic(S.stages[st.id] ? 'check' : 'flag', { size: 18 })}</span>
       <span class="txt"><b>Bilan de l'étape</b><small>${S.stages[st.id] ? 'Étape validée, bravo !' : 'Un petit test pour valider l\'étape'}</small></span>
-      <span>${allDone ? '›' : '🔒'}</span></a>`;
+      ${ic(allDone ? 'chevron' : 'lock', { size: 20 })}</a>`;
   }
   body += `<div class="lesson locked"><span class="num">2</span><span class="txt"><b>Étape 2 · Le présent</b><small>Bientôt : les verbes du quotidien</small></span></div>
-    <a class="card link" href="#/antiseche" style="margin-top:16px"><h2>📞 Antisèche pour appeler papa</h2><p class="muted small">Les phrases utiles, à garder sous les yeux pendant l'appel.</p></a>
-    <a class="card link" href="#/fiches"><h2>📚 Fiches de référence</h2><p class="muted small">Le nikoud, les lettres, les pronoms… à consulter quand tu veux.</p></a>`;
+    <a class="card link" href="#/antiseche" style="margin-top:22px"><span class="round">${ic('phone', { size: 20 })}</span>
+      <span class="grow"><h2>Antisèche pour appeler papa</h2><p class="muted small">Les phrases utiles, à garder sous les yeux pendant l'appel.</p></span>${ic('chevron')}</a>
+    <a class="card link" href="#/fiches"><span class="round">${ic('file', { size: 20 })}</span>
+      <span class="grow"><h2>Fiches de référence</h2><p class="muted small">Le nikoud, les lettres, les pronoms… à consulter quand tu veux.</p></span>${ic('chevron')}</a>`;
   return { title: 'Oulpan de poche', body, tab: 'p' };
 });
 
@@ -365,7 +370,7 @@ const STEP_NAMES = { fiche: 'La fiche', exemples: 'Les exemples', lecture: 'La l
 function ficheHtml(l) {
   return l.fiche.map(b => {
     if (b.t === 'p') return `<p>${mixed(b.text)}</p>`;
-    if (b.t === 'tip') return `<div class="card tip small">💡 ${mixed(b.text)}</div>`;
+    if (b.t === 'tip') return `<div class="card tip small">${mixed(b.text)}</div>`;
     if (b.t === 'words') return b.ids.map(wordRow).join('');
     if (b.t === 'table') {
       return `<div class="table-wrap"><table><thead><tr>${b.head.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>
@@ -395,7 +400,7 @@ route(/^\/lecon\/(\w+)\/(\w+)$/, (lid, step) => {
   if (step === 'exemples') {
     return { ...base, dock: cont, body: head +
       `<p class="muted">Touche un mot pour l'écouter, et l'étoile pour le marquer comme difficile.</p>
-      <div class="row-btns"><button class="btn small" data-play-list="${l.examples.join(',')}">▶ Tout écouter</button></div>
+      <div class="row-btns"><button class="btn small" data-play-list="${l.examples.join(',')}">${ic('play', { filled: true, size: 14 })}Tout écouter</button></div>
       ${l.examples.map(wordRow).join('')}` };
   }
 
@@ -409,8 +414,8 @@ route(/^\/lecon\/(\w+)\/(\w+)$/, (lid, step) => {
     const lines = l.reading.map((x, i) => {
       const k = `${lid}-${i}`;
       return lineCard(x, keep, `<div class="row-btns">
-        <button class="btn small" data-rec="${k}">🎙️ M'enregistrer</button>
-        ${recordings[k] ? `<button class="btn small" data-compare="${k}" data-text="${esc(x.he)}">▶ Comparer</button>` : ''}
+        <button class="btn small" data-rec="${k}">${ic('mic', { size: 18 })}M'enregistrer</button>
+        ${recordings[k] ? `<button class="btn small" data-compare="${k}" data-text="${esc(x.he)}">${ic('play', { filled: true, size: 14 })}Comparer</button>` : ''}
       </div>`);
     }).join('');
     return { ...base, body: head +
@@ -453,7 +458,7 @@ function quizScreen(base) {
       <div class="opts" style="grid-template-columns:1fr 1fr">${q.opts.map(id => optBtn(id, he(WORDS[id].he, 'xl'))).join('')}</div>`;
   } else if (q.type === 'he2fr') {
     body += `<p class="prompt">Que veut dire… ?</p>
-      <button class="say" data-say="${q.id}" style="background:none;border:0;cursor:pointer">${he(heOf(w, keep), 'xl')} 🔊</button>
+      <button class="say" data-say="${q.id}">${ic('volume', { size: 22 })}${he(heOf(w, keep), 'xl')}</button>
       ${S.settings.translit ? `<p class="tr">${esc(w.tr)}</p>` : ''}
       <div class="opts">${q.opts.map(id => optBtn(id, esc(WORDS[id].fr))).join('')}</div>`;
   } else if (q.type === 'fr2he') {
@@ -461,8 +466,8 @@ function quizScreen(base) {
       <div class="opts">${q.opts.map(id => optBtn(id, he(heOf(WORDS[id], keep)))).join('')}</div>`;
   } else if (q.type === 'audio') {
     body += `<p class="prompt">Écoute : qu'est-ce que tu entends ?</p>
-      <button class="speaker" data-say="${q.id}" aria-label="Écouter">🔊</button>
-      ${S.settings.muted ? '<p class="small muted">La sourdine est activée : touche 🔇 en haut pour réactiver le son, ou passe cette question.</p>' : ''}
+      <button class="speaker" data-say="${q.id}" aria-label="Écouter">${ic('volume', { size: 32 })}</button>
+      ${S.settings.muted ? '<p class="small muted">La sourdine est activée : touche l’icône du son en haut pour la couper, ou passe cette question.</p>' : ''}
       <div class="opts">${q.opts.map(id => optBtn(id, he(heOf(WORDS[id], keep)))).join('')}</div>`;
     if (!s.answered) dock = `<button class="btn" data-act="skip">Je ne peux pas écouter, passer</button>`;
     if (!s.answered && s.autoplayed !== s.i) { s.autoplayed = s.i; setTimeout(() => sayWord(q.id), 300); }
@@ -477,22 +482,22 @@ function quizScreen(base) {
       ? `<p class="prompt">Comment dit-on…</p><h2>${esc(w.fr)}</h2>`
       : `<p class="prompt">Tu te souviens ?</p>${he(heOf(w, keep), 'xl')}`;
     body += `<div class="card flip">${front}
-      ${s.flipped ? `<hr style="width:60%;border:0;border-top:1px solid var(--line)">
-        <button class="say" data-say="${q.id}" style="background:none;border:0;cursor:pointer">${he(heOf(w, keep))} 🔊</button>
+      ${s.flipped ? `<hr>
+        <button class="say" data-say="${q.id}">${ic('volume', { size: 20 })}${he(heOf(w, keep))}</button>
         <span class="tr">${esc(w.tr)}</span><span class="fr">${esc(w.fr)}</span>` : ''}
     </div>`;
     dock = s.flipped
-      ? `<div class="eval3" style="flex:1"><button class="btn" data-eval="bad">😕 Je ne savais pas</button><button class="btn" data-eval="mid">🤔 J'hésitais</button><button class="btn primary" data-eval="good">😀 Je savais</button></div>`
+      ? `<div class="eval3"><button class="btn" data-eval="bad">Je ne savais pas</button><button class="btn" data-eval="mid">J'hésitais</button><button class="btn primary" data-eval="good">Je savais</button></div>`
       : `<button class="btn primary" data-act="flip">Retourner la carte</button>`;
   }
 
   if (s.answered) {
     const good = s.answered.ok;
     body += `<div class="feedback ${good ? 'good' : 'bad'}">
-      <b>${good ? '✅ Bravo !' : '❌ Pas tout à fait. La bonne réponse :'}</b>
+      <div class="verdict">${good ? `${ic('check', { size: 20 })}Bravo !` : `${ic('x', { size: 20 })}Pas tout à fait. La bonne réponse :`}</div>
       ${wordRow(q.id)}
       ${q.type === 'write' && !good && s.typed ? `<p class="small">Tu as écrit : ${diffHtml(s.typed, w)}</p>` : ''}
-      ${!good && KIND[q.id] ? `<a href="#/fiche/${KIND[q.id].lesson}">📖 Revoir la fiche</a>` : ''}
+      ${!good && KIND[q.id] ? `<a href="#/fiche/${KIND[q.id].lesson}">${ic('file', { size: 16 })}Revoir la fiche</a>` : ''}
     </div>`;
     dock = `<button class="btn primary" data-act="next">Continuer</button>`;
   }
@@ -503,7 +508,7 @@ function quizScreen(base) {
 function keyboard() {
   const rows = ['קראטוןםפ', 'שדגכעיחלךף', 'זסבהנמצתץ'];
   return `<div class="kb">${rows.map(r => `<div class="r">${[...r].map(c => `<button data-key="${c}">${c}</button>`).join('')}</div>`).join('')}
-    <div class="r"><button class="wide" data-key=" ">espace</button><button class="wide" data-key="⌫" aria-label="Effacer">⌫</button></div></div>`;
+    <div class="r"><button class="wide" data-key=" ">espace</button><button class="wide" data-key="⌫" aria-label="Effacer">${ic('backspace')}</button></div></div>`;
 }
 const norm = s => strip(s).replace(/[?!.,״"'׳־-]/g, '').replace(/\s+/g, ' ').trim();
 function diffHtml(typed, w) {
@@ -552,7 +557,7 @@ function finishScreen(base) {
     S.session = null;
     save();
     const nxt = nextLesson();
-    body = `<p class="done-big">🎉</p><h2 class="center">Leçon terminée !</h2>
+    body = `${drawing('book')}<h2 class="center">Leçon terminée</h2>
       <p class="center muted">Les mots de cette leçon arrivent dans tes révisions dès demain.</p>`;
     dock = `<button class="btn" data-go="#/">Parcours</button>` +
       (nxt && isUnlocked(nxt) ? `<button class="btn primary" data-go="#/lecon/${nxt}/fiche">Leçon suivante</button>` : '');
@@ -564,7 +569,7 @@ function finishScreen(base) {
     if (passed) S.stages[s.ref] = today();
     S.session = null;
     save();
-    body = `<p class="done-big">${passed ? '🏆' : '💪'}</p>
+    body = `${drawing(passed ? 'laurel' : 'path')}
       <h2 class="center">${pct}% de bonnes réponses</h2>
       <p class="center muted">${passed ? "Étape validée ! Teste maintenant ces phrases au téléphone avec tes parents." : "Encore un peu de révision et tu y es. Aucune pénalité : retente quand tu veux."}</p>`;
     dock = `<button class="btn primary" data-go="#/">Parcours</button>`;
@@ -575,7 +580,7 @@ function finishScreen(base) {
   S.session = null;
   save();
   const more = kind === 'review' ? dueToday() : Object.keys(S.hard).length;
-  body = `<p class="done-big">👏</p><h2 class="center">Bloc terminé</h2>
+  body = `${drawing('path')}<h2 class="center">Bloc terminé</h2>
     <p class="center muted">${s.score}/${total} bonnes réponses.${kind === 'review' && more ? ` Il reste ${plural(more, 'carte', 'cartes')} pour aujourd'hui.` : ''}</p>`;
   dock = `<button class="btn" data-go="#/">J'arrête là</button>` +
     (more ? `<button class="btn primary" data-act="${kind === 'review' ? 'start-review' : 'start-hard'}">Encore un bloc</button>` : '');
@@ -593,15 +598,17 @@ route(/^\/revisions$/, () => {
   if (!Object.keys(S.cards).length) {
     body = `<div class="card"><h2>Rien à réviser pour l'instant</h2><p class="muted">Termine une leçon : ses mots arriveront ici le lendemain, puis reviendront de plus en plus espacés.</p></div>`;
   } else if (!due && done >= REVIEW_CAP) {
-    body = `<div class="card"><h2>👏 Dose du jour faite</h2><p class="muted">Tu as révisé ${done} cartes aujourd'hui. Les autres attendront demain, pas de montagne.</p></div>`;
+    body = `<div class="card"><h2>Dose du jour faite</h2><p class="muted">Tu as révisé ${done} cartes aujourd'hui. Les autres attendront demain, pas de montagne.</p></div>`;
   } else if (!due) {
-    body = `<div class="card"><h2>✅ Tout est à jour</h2><p class="muted">Aucune carte à revoir aujourd'hui. Tu peux avancer dans le parcours ou faire un récap de tes mots difficiles.</p></div>`;
+    body = `<div class="card"><h2>Tout est à jour</h2><p class="muted">Aucune carte à revoir aujourd'hui. Tu peux avancer dans le parcours ou faire un récap de tes mots difficiles.</p></div>`;
   } else {
     body = `<div class="card"><h2>${plural(due, 'carte à revoir', 'cartes à revoir')}</h2>
       <p class="muted">Par blocs de ${BLOCK}, chacun enregistré : tu peux t'arrêter à ta station.</p></div>`;
   }
-  body += `<a class="card link" href="#/ecoute/revisions"><h2>🎧 Réviser aux écouteurs</h2><p class="muted small">L'hébreu, une pause pour répondre dans ta tête, puis la traduction. Sans regarder l'écran.</p></a>
-    <a class="card link" href="#/mots/difficiles"><h2>⭐ Mes mots difficiles</h2><p class="muted small">${plural(Object.keys(S.hard).length, 'mot', 'mots')}</p></a>`;
+  body += `<a class="card link" href="#/ecoute/revisions"><span class="round">${ic('headphones', { size: 20 })}</span>
+      <span class="grow"><h2>Réviser aux écouteurs</h2><p class="muted small">L'hébreu, une pause pour répondre dans ta tête, puis la traduction. Sans regarder l'écran.</p></span>${ic('chevron')}</a>
+    <a class="card link" href="#/mots/difficiles"><span class="round">${ic('star', { size: 20 })}</span>
+      <span class="grow"><h2>Mes mots difficiles</h2><p class="muted small">${plural(Object.keys(S.hard).length, 'mot', 'mots')}</p></span>${ic('chevron')}</a>`;
   return { ...base, body, dock: due ? `<button class="btn primary" data-act="start-review">Commencer un bloc</button>` : '' };
 });
 
@@ -611,7 +618,7 @@ const learnedIds = () => Object.keys(S.cards);
 
 route(/^\/mots\/(difficiles|tous|phrases)$/, tab => {
   const tabs = `<div class="tabs">
-    <a href="#/mots/difficiles" class="${tab === 'difficiles' ? 'on' : ''}">⭐ Difficiles</a>
+    <a href="#/mots/difficiles" class="${tab === 'difficiles' ? 'on' : ''}">Difficiles</a>
     <a href="#/mots/tous" class="${tab === 'tous' ? 'on' : ''}">Tous mes mots</a>
     <a href="#/mots/phrases" class="${tab === 'phrases' ? 'on' : ''}">Je sais dire</a></div>`;
   const base = { title: 'Mes mots', tab: 'm' };
@@ -621,9 +628,9 @@ route(/^\/mots\/(difficiles|tous|phrases)$/, tab => {
     const ids = Object.keys(S.hard);
     const body = tabs + (ids.length
       ? `<p class="muted small">Ceux que tu as marqués d'une étoile, et ceux que tu rates souvent. Touche l'étoile pour en retirer un quand tu le maîtrises.</p>
-         <div class="row-btns"><a class="btn small" href="#/ecoute/difficiles" style="text-decoration:none;display:flex;align-items:center">🎧 Écouter en boucle</a></div>
+         <div class="row-btns"><a class="btn small" href="#/ecoute/difficiles">${ic('headphones', { size: 18 })}Écouter en boucle</a></div>
          ${ids.map(wordRow).join('')}`
-      : `<div class="card"><h2>Aucun mot difficile</h2><p class="muted">Touche l'étoile ☆ à côté d'un mot pour le garder ici. Les mots que tu rates souvent s'y ajoutent aussi tout seuls.</p></div>`);
+      : `<div class="card"><h2>Aucun mot difficile</h2><p class="muted">Touche l'étoile à côté d'un mot pour le garder ici. Les mots que tu rates souvent s'y ajoutent aussi tout seuls.</p></div>`);
     return { ...base, body, dock: ids.length ? `<button class="btn primary" data-act="start-hard">Faire un récap</button>` : '' };
   }
 
@@ -649,7 +656,7 @@ route(/^\/fiches$/, () => ({
   title: 'Fiches', back: '#/', tab: 'p',
   body: `<p class="muted">Toutes les fiches des leçons ouvertes.</p>` +
     Object.entries(LESSONS).filter(([lid]) => isUnlocked(lid)).map(([lid, l]) =>
-      `<a class="lesson" href="#/fiche/${lid}"><span class="num">📄</span><span class="txt"><b>${esc(l.title)}</b><small>${esc(l.summary)}</small></span><span>›</span></a>`).join(''),
+      `<a class="lesson" href="#/fiche/${lid}"><span class="num">${ic('file', { size: 18 })}</span><span class="txt"><b>${esc(l.title)}</b><small>${esc(l.summary)}</small></span>${ic('chevron', { size: 20 })}</a>`).join(''),
 }));
 
 route(/^\/fiche\/(\w+)$/, lid => {
@@ -718,10 +725,10 @@ route(/^\/ecoute\/(\w+)$/, src => {
     <p class="muted small">${player.i + 1} / ${ids.length}</p>
     <div class="card now">${he(heOf(w, keepNikud(ids[player.i])), 'xl')}
       ${S.settings.translit ? `<p class="tr">${esc(w.tr)}</p>` : ''}<p class="fr" id="fr-now">${player.phase === 'fr' ? esc(w.fr) : '…'}</p></div>
-    ${S.settings.muted ? '<p class="small">La sourdine est activée : touche 🔇 en haut pour entendre.</p>' : ''}
+    ${S.settings.muted ? '<p class="small">La sourdine est activée : touche l’icône du son en haut pour entendre.</p>' : ''}
     <p class="muted small">L'hébreu, une pause pour répondre dans ta tête, la traduction, puis l'hébreu encore.</p>
   </div>`;
-  const dock = `<button class="btn" data-act="p-prev">⏮</button><button class="btn primary" data-act="p-toggle">${player.on ? '⏸ Pause' : '▶ Lecture'}</button><button class="btn" data-act="p-next">⏭</button>`;
+  const dock = `<button class="btn" data-act="p-prev" aria-label="Précédent">${ic('prev')}</button><button class="btn primary" data-act="p-toggle">${player.on ? `${ic('pause', { filled: true, size: 18 })}Pause` : `${ic('play', { filled: true, size: 18 })}Lecture`}</button><button class="btn" data-act="p-next" aria-label="Suivant">${ic('next')}</button>`;
   return { ...base, body, dock };
 });
 
@@ -749,7 +756,7 @@ const SETTINGS = [
   ['nikud', 'Voyelles (nikoud)', 'Les leçons de lecture les gardent toujours.'],
   ['translit', 'Prononciation en lettres latines', 'À retirer petit à petit, comme les voyelles.'],
   ['slow', 'Audio lent', 'Pour bien entendre chaque son.'],
-  ['muted', 'Sourdine', "Ton iPhone ne coupe pas ce son en silencieux : utilise ce bouton (ou 🔊 en haut)."],
+  ['muted', 'Sourdine', "Ton iPhone ne coupe pas ce son en silencieux : utilise ce bouton (ou l'icône du son en haut)."],
   ['big', 'Grand texte', 'Agrandit l\'hébreu et le texte.'],
 ];
 
@@ -757,12 +764,12 @@ route(/^\/reglages$/, () => {
   const notes = S.notes.slice().reverse();
   const body = `<div class="card">${SETTINGS.map(([k, label, help]) =>
       `<label class="switch"><span>${label}<small>${help}</small></span><input type="checkbox" data-setting="${k}" ${S.settings[k] ? 'checked' : ''}></label>`).join('')}</div>
-    <div class="card"><h2>💬 Mes remarques</h2>
+    <div class="card"><h2>Mes remarques</h2>
       <p class="muted small">Note ce qui te gêne ou te manque, puis copie tout pour l'envoyer à Claude : l'appli sera ajustée.</p>
-      ${notes.length ? notes.map(n => `<p class="small"><b>${esc(n.date)}</b> · ${esc(n.text)}</p>`).join('') : '<p class="muted small">Aucune remarque pour l\'instant. Le bouton 💬 en haut marche partout.</p>'}
+      ${notes.length ? notes.map(n => `<p class="small"><b>${esc(n.date)}</b> · ${esc(n.text)}</p>`).join('') : '<p class="muted small">Aucune remarque pour l\'instant. La bulle en haut de l’écran marche partout.</p>'}
       <div class="row-btns"><button class="btn small" data-act="note">Ajouter</button>${notes.length ? '<button class="btn small" data-act="copy-notes">Copier pour Claude</button><button class="btn small" data-act="clear-notes">Vider</button>' : ''}</div>
     </div>
-    <div class="card"><h2>💾 Sauvegarde</h2>
+    <div class="card"><h2>Sauvegarde</h2>
       <p class="muted small">Ta progression est enregistrée sur ce téléphone. Pour la garder en changeant de téléphone, copie ta sauvegarde et garde-la dans tes notes.</p>
       <div class="row-btns"><button class="btn small" data-act="export">Copier ma sauvegarde</button><button class="btn small" data-act="import">Restaurer</button></div>
     </div>
@@ -777,7 +784,7 @@ route(/^\/reglages$/, () => {
 // ---------- Actions ----------
 
 function noteSheet() {
-  openSheet(`<h2 style="margin-top:0">💬 Une remarque ?</h2>
+  openSheet(`<h2 style="margin-top:0">Une remarque ?</h2>
     <p class="muted small">Ce qui te gêne, te manque ou te plaît. Elle est gardée dans Réglages.</p>
     <textarea id="note-text" placeholder="Ex. : la voix est trop rapide dans les exercices"></textarea>
     <div class="row-btns"><button class="btn" data-act="close">Annuler</button><button class="btn primary" data-act="save-note">Enregistrer</button></div>`,
@@ -806,7 +813,7 @@ async function toggleRecord(key, btn) {
       render();
     };
     mediaRec.start();
-    btn.textContent = '⏹ Arrêter';
+    btn.innerHTML = `${ic('stop', { filled: true, size: 16 })}Arrêter`;
   } catch (e) {
     toast("Micro indisponible : autorise-le dans les réglages de Safari.");
   }
@@ -909,7 +916,7 @@ document.addEventListener('click', e => {
     document.querySelectorAll(`[data-star="${d.star}"]`).forEach(b => {
       const on = !!S.hard[d.star];
       b.classList.toggle('on', on);
-      b.textContent = on ? '★' : '☆';
+      b.innerHTML = ic('star', { filled: on });
     });
     toast(S.hard[d.star] ? 'Ajouté à tes mots difficiles' : 'Retiré de tes mots difficiles');
     return;

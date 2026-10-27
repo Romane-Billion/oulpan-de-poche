@@ -1,6 +1,6 @@
 // Garde l'appli en cache pour qu'elle s'ouvre sans réseau.
-const CACHE = 'oulpan-v2';
-const FILES = ['./', 'index.html', 'test.html', 'css/app.css', 'js/app.js', 'js/data.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
+const CACHE = 'oulpan-v3';
+const FILES = ['./', 'index.html', 'test.html', 'css/app.css', 'js/app.js', 'js/data.js', 'js/icons.js', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
