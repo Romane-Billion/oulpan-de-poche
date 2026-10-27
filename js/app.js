@@ -1,5 +1,8 @@
 import { WORDS, LESSONS, STAGES } from './data.js';
 import { ic, drawing } from './icons.js';
+import { CWORDS, CULTURE, CULTURE_SOON } from './culture.js';
+
+Object.assign(WORDS, CWORDS);
 
 // ---------- État sauvegardé sur le téléphone ----------
 
@@ -15,6 +18,8 @@ const DEFAULT = {
   reviews: { date: null, n: 0 },
   resume: null,    // { lesson, step }
   session: null,   // exercices en cours
+  culture: {},     // c1: { done, score }
+  cquiz: null,     // quiz culture en cours
 };
 const DAILY_GOAL = 10;      // réponses par jour pour l'objectif
 const REVIEW_CAP = 30;      // révisions max par jour
@@ -358,7 +363,9 @@ route(/^\/$/, () => {
     <a class="card link" href="#/antiseche" style="margin-top:22px"><span class="round">${ic('phone', { size: 20 })}</span>
       <span class="grow"><h2>Antisèche pour appeler papa</h2><p class="muted small">Les phrases utiles, à garder sous les yeux pendant l'appel.</p></span>${ic('chevron')}</a>
     <a class="card link" href="#/fiches"><span class="round">${ic('file', { size: 20 })}</span>
-      <span class="grow"><h2>Fiches de référence</h2><p class="muted small">Le nikoud, les lettres, les pronoms… à consulter quand tu veux.</p></span>${ic('chevron')}</a>`;
+      <span class="grow"><h2>Fiches de référence</h2><p class="muted small">Le nikoud, les lettres, les pronoms… à consulter quand tu veux.</p></span>${ic('chevron')}</a>
+    <a class="card link" href="#/culture"><span class="round">${ic('menorah', { size: 20 })}</span>
+      <span class="grow"><h2>Culture juive</h2><p class="muted small">Fêtes, objets, cuisine, récits… à ton rythme, en dehors des révisions.</p></span>${ic('chevron')}</a>`;
   return { title: 'Oulpan de poche', body, tab: 'p' };
 });
 
@@ -370,6 +377,7 @@ const STEP_NAMES = { fiche: 'La fiche', exemples: 'Les exemples', lecture: 'La l
 function ficheHtml(l) {
   return l.fiche.map(b => {
     if (b.t === 'p') return `<p>${mixed(b.text)}</p>`;
+    if (b.t === 'h') return `<h2 style="margin:22px 0 4px">${esc(b.text)}</h2>`;
     if (b.t === 'tip') return `<div class="card tip small">${mixed(b.text)}</div>`;
     if (b.t === 'words') return b.ids.map(wordRow).join('');
     if (b.t === 'table') {
@@ -650,6 +658,65 @@ route(/^\/mots\/(difficiles|tous|phrases)$/, tab => {
   return { ...base, body };
 });
 
+// ---------- Culture juive ----------
+
+route(/^\/culture$/, () => {
+  const done = CULTURE.filter(c => S.culture[c.id]).length;
+  let body = `<p class="muted">Un parcours à part, à faire quand tu en as envie. Il ne compte pas dans tes révisions du jour. ${done}/${CULTURE.length} modules découverts.</p>`;
+  CULTURE.forEach((c, i) => {
+    const r = S.culture[c.id];
+    body += `<a class="lesson ${r ? 'done' : ''}" href="#/culture/${c.id}">
+      <span class="num">${r ? ic('check', { size: 18 }) : i + 1}</span>
+      <span class="txt"><b>${esc(c.title)}</b><small>${esc(c.summary)}${r ? ` · quiz ${r.score}/${c.quiz.length}` : ''}</small></span>${ic('chevron', { size: 20 })}</a>`;
+  });
+  body += CULTURE_SOON.map(t => `<div class="lesson locked"><span class="num">${ic('lock', { size: 16 })}</span><span class="txt"><b>${esc(t)}</b><small>Bientôt</small></span></div>`).join('');
+  return { title: 'Culture juive', body, back: '#/', tab: 'p' };
+});
+
+route(/^\/culture\/(\w+)$/, cid => {
+  const c = CULTURE.find(x => x.id === cid);
+  if (!c) return go('#/culture') || { title: '', body: '' };
+  const inReviews = c.words.every(id => S.cards[id]);
+  const body = ficheHtml({ fiche: c.story }) +
+    `<h2 style="margin:26px 0 8px">Les mots</h2>${c.words.map(wordRow).join('')}
+    <div class="row-btns">${inReviews
+      ? `<span class="muted small">Ces mots sont dans tes révisions.</span>`
+      : `<button class="btn small" data-act="c-add" data-ref="${c.id}">Ajouter ces mots à mes révisions</button>`}</div>
+    <h2 style="margin:26px 0 8px">À dire à tes parents</h2>${lineCard(c.phrase, false)}`;
+  return { title: esc(c.title), body, back: '#/culture', focus: true,
+    dock: `<button class="btn primary" data-act="c-start" data-ref="${c.id}">Faire le quiz</button>` };
+});
+
+route(/^\/culture\/(\w+)\/quiz$/, cid => {
+  const c = CULTURE.find(x => x.id === cid);
+  const z = S.cquiz;
+  if (!c || !z || z.id !== cid) return go(`#/culture/${cid}`) || { title: '', body: '' };
+  const base = { title: esc(c.title), back: `#/culture/${cid}`, focus: true };
+  const progress = `<div class="steps">${c.quiz.map((_, i) => `<i class="${i < z.i || (i === z.i && z.answered !== null) ? 'on' : ''}"></i>`).join('')}</div>`;
+  if (z.i >= c.quiz.length) {
+    S.culture[cid] = { done: today(), score: z.score };
+    S.cquiz = null;
+    save();
+    return { ...base, body: `${drawing(z.score >= 4 ? 'laurel' : 'book')}<h2 class="center">${z.score}/${c.quiz.length} bonnes réponses</h2>
+      <p class="center muted">Module découvert. Tu peux relire le récit ou refaire le quiz quand tu veux.</p>`,
+      dock: `<button class="btn" data-go="#/culture">Culture</button><button class="btn primary" data-go="#/culture/${cid}">Relire</button>` };
+  }
+  const q = c.quiz[z.i];
+  const opts = q.opts.map((o, k) => {
+    let cls = '';
+    if (z.answered !== null) { if (k === q.a) cls = 'good'; else if (k === z.answered) cls = 'bad'; }
+    return `<button class="opt ${cls}" data-cchoice="${k}" ${z.answered !== null ? 'disabled' : ''}>${esc(o)}</button>`;
+  }).join('');
+  let body = `${progress}<div class="q"><p class="prompt">Question ${z.i + 1} sur ${c.quiz.length}</p><h2>${esc(q.q)}</h2><div class="opts">${opts}</div>`;
+  let dock = '';
+  if (z.answered !== null) {
+    const ok = z.answered === q.a;
+    body += `<div class="feedback ${ok ? 'good' : 'bad'}"><div class="verdict">${ic(ok ? 'check' : 'x', { size: 20 })}${ok ? 'Bravo !' : 'Pas tout à fait.'}</div><p style="margin:0">${esc(q.why)}</p></div>`;
+    dock = `<button class="btn primary" data-act="c-next">Continuer</button>`;
+  }
+  return { ...base, body: body + '</div>', dock };
+});
+
 // ---------- Fiches, antisèche, bilan ----------
 
 route(/^\/fiches$/, () => ({
@@ -896,6 +963,13 @@ const ACTIONS = {
     startSession('bilan', st.id, qs);
     render();
   },
+  'c-start'(el) { S.cquiz = { id: el.dataset.ref, i: 0, score: 0, answered: null }; save(); go(`#/culture/${el.dataset.ref}/quiz`); },
+  'c-next'() { S.cquiz.i++; S.cquiz.answered = null; save(); render(); },
+  'c-add'(el) {
+    const c = CULTURE.find(x => x.id === el.dataset.ref);
+    for (const id of c.words) if (!S.cards[id]) S.cards[id] = { box: 1, due: addDays(1), misses: 0 };
+    save(); toast('Ajoutés : ils arriveront dans tes révisions dès demain.'); render();
+  },
   'p-toggle'() { player.on = !player.on; if (player.on) playStep(); else { stopSpeech(); render(); } },
   'p-next'() { stopSpeech(); player.i = (player.i + 1) % player.ids.length; player.phase = null; if (player.on) playStep(); else render(); },
   'p-prev'() { stopSpeech(); player.i = (player.i - 1 + player.ids.length) % player.ids.length; player.phase = null; if (player.on) playStep(); else render(); },
@@ -926,6 +1000,14 @@ document.addEventListener('click', e => {
     let i = 0;
     const nextWord = () => { if (i < ids.length) speak(WORDS[ids[i++]].he, 'he-IL', () => setTimeout(nextWord, 700)); };
     nextWord();
+    return;
+  }
+  if (d.cchoice) {
+    S.cquiz.answered = Number(d.cchoice);
+    const c = CULTURE.find(x => x.id === S.cquiz.id);
+    if (S.cquiz.answered === c.quiz[S.cquiz.i].a) S.cquiz.score++;
+    save(); render();
+    document.querySelector('.feedback')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
   if (d.choice) { answer(d.choice === S.session.qs[S.session.i].id, d.choice); return; }
