@@ -1,6 +1,7 @@
 import { WORDS, LESSONS, STAGES } from './data.js';
 import { ic, drawing } from './icons.js';
 import { CWORDS, CULTURE, CULTURE_SOON } from './culture.js';
+import { ATELIER_LEVELS, LEVEL_GOAL, atelierItem } from './atelier.js';
 
 Object.assign(WORDS, CWORDS);
 
@@ -20,6 +21,7 @@ const DEFAULT = {
   session: null,   // exercices en cours
   culture: {},     // c1: { done, score }
   cquiz: null,     // quiz culture en cours
+  atelier: { level: 1, max: 1, pts: {} }, // atelier lecture
 };
 const DAILY_GOAL = 10;      // réponses par jour pour l'objectif
 const REVIEW_CAP = 30;      // révisions max par jour
@@ -27,21 +29,32 @@ const BLOCK = 10;           // questions par mini-bloc
 const INTERVALS = [0, 1, 2, 4, 8, 16, 32]; // jours d'attente par boîte
 
 let S = load();
+save();
 
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      return {
+      return migrate({
         ...structuredClone(DEFAULT), ...s,
         settings: { ...DEFAULT.settings, ...s.settings },
         streak: { ...DEFAULT.streak, ...s.streak },
         reviews: { ...DEFAULT.reviews, ...s.reviews },
-      };
+        atelier: { ...DEFAULT.atelier, ...s.atelier },
+      });
     }
   } catch (e) { /* stockage indisponible : on repart de zéro */ }
   return structuredClone(DEFAULT);
+}
+// La première leçon de lecture a été découpée en quatre : on retire l'ancienne.
+function migrate(s) {
+  delete s.lessons.l1;
+  for (const id of Object.keys(s.cards)) if (id.startsWith('v-') || !WORDS[id]) delete s.cards[id];
+  for (const id of Object.keys(s.hard)) if (id.startsWith('v-') || !WORDS[id]) delete s.hard[id];
+  if (s.resume && !LESSONS[s.resume.lesson]) s.resume = null;
+  if (s.session && s.session.qs.some(q => !WORDS[q.id])) s.session = null;
+  return s;
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignore */ }
@@ -68,10 +81,20 @@ function heOf(w, keep) {
 }
 const he = (text, cls = '') => `<bdi class="he ${cls}" lang="he">${esc(text)}</bdi>`;
 // Texte mixte (fiches) : on isole les morceaux en hébreu, voyelles toujours visibles.
-const mixed = text => esc(text).replace(/[֐-׿]+(?:[  ]+[֐-׿]+)*/g, m => `<bdi class="he" lang="he">${m}</bdi>`);
+// Dans une phrase en français, l'hébreu reste à la taille du texte pour garder un interlignage régulier.
+// Espaces insécables du français : jamais de « ou de : seul en début de ligne.
+const typo = t => t.replace(/« /g, '«\u00a0').replace(/ ([»:;?!])/g, '\u00a0$1');
+const mixed = text => esc(typo(text)).replace(/[֐-׿]+(?:[  ]+[֐-׿]+)*/g, m => `<bdi class="he inl" lang="he">${m}</bdi>`);
+const LATIN = /[A-Za-zÀ-ÿ]/;
+const cell = text => (LATIN.test(text) ? mixed(text) : he(text));
 
 const KIND = {};
-for (const [lid, l] of Object.entries(LESSONS)) for (const id of [...l.items, ...l.examples]) KIND[id] ??= { kind: l.kind, lesson: lid };
+// Un mot vu en lecture puis en vocabulaire se révise pour son sens.
+for (const [lid, l] of Object.entries(LESSONS)) {
+  for (const id of [...l.items, ...l.examples]) {
+    if (!KIND[id] || (l.kind === 'vocab' && KIND[id].kind !== 'vocab')) KIND[id] = { kind: l.kind, lesson: lid };
+  }
+}
 const keepNikud = id => KIND[id] && KIND[id].kind !== 'vocab';
 
 // ---------- Voix ----------
@@ -129,12 +152,14 @@ function openSheet(html, onMount) {
 }
 function closeSheet() { document.getElementById('sheet')?.remove(); }
 
-function wordRow(id) {
+// hide : la prononciation et le sens restent cachés jusqu'à ce qu'on touche le mot.
+function wordRow(id, hide = false) {
   const w = WORDS[id];
   const on = !!S.hard[id];
-  return `<div class="word">
+  return `<div class="word ${hide ? 'hide' : ''}">
     <button class="word-main" data-say="${id}">
       ${he(heOf(w, keepNikud(id)))}
+      ${hide ? '<span class="reveal-hint">Lis-le, puis touche pour vérifier</span>' : ''}
       ${S.settings.translit ? `<span class="tr">${esc(w.tr)}</span>` : ''}
       <span class="fr">${esc(w.fr)}</span>
     </button>
@@ -142,12 +167,17 @@ function wordRow(id) {
   </div>`;
 }
 
-function lineCard(l, keep, extra = '') {
-  return `<div class="line">
+// open : tout est visible (antisèche, phrases déjà apprises). Sinon, on lit d'abord,
+// puis on touche la phrase pour l'entendre et voir la prononciation et la traduction.
+function lineCard(l, keep, extra = '', open = false) {
+  return `<div class="line ${open ? '' : 'hide'}">
     ${l.who ? `<div class="who">${esc(l.who)}</div>` : ''}
     <button class="say" data-say-text="${esc(l.he)}">${ic('volume', { size: 20 })}${he(heOf(l.he, keep))}</button>
-    ${S.settings.translit ? `<div class="tr">${esc(l.tr)}</div>` : ''}
-    <details><summary>Traduction</summary>${esc(l.fr)}</details>
+    ${open ? '' : '<div class="reveal-hint">Lis-la, puis touche pour vérifier</div>'}
+    <div class="answer">
+      ${S.settings.translit ? `<div class="tr">${esc(l.tr)}</div>` : ''}
+      <div class="fr">${esc(l.fr)}</div>
+    </div>
     ${extra}
   </div>`;
 }
@@ -360,7 +390,9 @@ route(/^\/$/, () => {
       ${ic(allDone ? 'chevron' : 'lock', { size: 20 })}</a>`;
   }
   body += `<div class="lesson locked"><span class="num">2</span><span class="txt"><b>Étape 2 · Le présent</b><small>Bientôt : les verbes du quotidien</small></span></div>
-    <a class="card link" href="#/antiseche" style="margin-top:22px"><span class="round">${ic('phone', { size: 20 })}</span>
+    <a class="card link" href="#/atelier" style="margin-top:22px"><span class="round">${ic('glasses', { size: 20 })}</span>
+      <span class="grow"><h2>Atelier lecture</h2><p class="muted small">S’entraîner à lire, à volonté. Niveau ${S.atelier.level} sur ${ATELIER_LEVELS.length} : ${esc(ATELIER_LEVELS[S.atelier.level - 1].title.toLowerCase())}.</p></span>${ic('chevron')}</a>
+    <a class="card link" href="#/antiseche"><span class="round">${ic('phone', { size: 20 })}</span>
       <span class="grow"><h2>Antisèche pour appeler papa</h2><p class="muted small">Les phrases utiles, à garder sous les yeux pendant l'appel.</p></span>${ic('chevron')}</a>
     <a class="card link" href="#/fiches"><span class="round">${ic('file', { size: 20 })}</span>
       <span class="grow"><h2>Fiches de référence</h2><p class="muted small">Le nikoud, les lettres, les pronoms… à consulter quand tu veux.</p></span>${ic('chevron')}</a>
@@ -382,7 +414,7 @@ function ficheHtml(l) {
     if (b.t === 'words') return b.ids.map(wordRow).join('');
     if (b.t === 'table') {
       return `<div class="table-wrap"><table><thead><tr>${b.head.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>
-        <tbody>${b.rows.map(r => `<tr>${r.map(c => `<td>${mixed(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+        <tbody>${b.rows.map(r => `<tr>${r.map(c => `<td>${cell(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
     }
     return '';
   }).join('');
@@ -407,14 +439,16 @@ route(/^\/lecon\/(\w+)\/(\w+)$/, (lid, step) => {
 
   if (step === 'exemples') {
     return { ...base, dock: cont, body: head +
-      `<p class="muted">Touche un mot pour l'écouter, et l'étoile pour le marquer comme difficile.</p>
-      <div class="row-btns"><button class="btn small" data-play-list="${l.examples.join(',')}">${ic('play', { filled: true, size: 14 })}Tout écouter</button></div>
-      ${l.examples.map(wordRow).join('')}` };
+      (l.kind === 'lecture'
+        ? `<p class="muted">Lis chaque mot, syllabe par syllabe, puis touche-le pour l’entendre et vérifier.</p>`
+        : `<p class="muted">Touche un mot pour l'écouter, et l'étoile pour le marquer comme difficile.</p>
+      <div class="row-btns"><button class="btn small" data-play-list="${l.examples.join(',')}">${ic('play', { filled: true, size: 14 })}Tout écouter</button></div>`) +
+      l.examples.map(id => wordRow(id, l.kind === 'lecture')).join('') };
   }
 
   if (step === 'lecture') {
     return { ...base, dock: cont, body: head +
-      `<p class="muted">Lis chaque phrase à ton rythme, puis touche-la pour vérifier avec l'audio.</p>
+      `<p class="muted">Lis chaque phrase à ton rythme, puis touche-la : tu l’entends, et la prononciation et la traduction apparaissent.</p>
       ${l.reading.map(x => lineCard(x, keep)).join('')}` };
   }
 
@@ -424,7 +458,7 @@ route(/^\/lecon\/(\w+)\/(\w+)$/, (lid, step) => {
       return lineCard(x, keep, `<div class="row-btns">
         <button class="btn small" data-rec="${k}">${ic('mic', { size: 18 })}M'enregistrer</button>
         ${recordings[k] ? `<button class="btn small" data-compare="${k}" data-text="${esc(x.he)}">${ic('play', { filled: true, size: 14 })}Comparer</button>` : ''}
-      </div>`);
+      </div>`, true);
     }).join('');
     return { ...base, body: head +
       `<div class="card tip small">Facultatif : écoute chaque phrase et répète-la à voix haute. Dans le métro, tu peux simplement écouter, ou passer.</div>
@@ -467,7 +501,6 @@ function quizScreen(base) {
   } else if (q.type === 'he2fr') {
     body += `<p class="prompt">Que veut dire… ?</p>
       <button class="say" data-say="${q.id}">${ic('volume', { size: 22 })}${he(heOf(w, keep), 'xl')}</button>
-      ${S.settings.translit ? `<p class="tr">${esc(w.tr)}</p>` : ''}
       <div class="opts">${q.opts.map(id => optBtn(id, esc(WORDS[id].fr))).join('')}</div>`;
   } else if (q.type === 'fr2he') {
     body += `<p class="prompt">Comment dit-on…</p><h2 style="margin:6px 0 4px">${esc(w.fr)}</h2>
@@ -481,7 +514,7 @@ function quizScreen(base) {
     if (!s.answered && s.autoplayed !== s.i) { s.autoplayed = s.i; setTimeout(() => sayWord(q.id), 300); }
   } else if (q.type === 'write') {
     body += `<p class="prompt">Écris en hébreu :</p><h2 style="margin:6px 0">${esc(w.fr)}</h2>
-      ${S.settings.translit ? `<p class="tr">${esc(w.tr)}</p>` : ''}
+      ${s.hint || s.answered ? `<p class="tr">${esc(w.tr)}</p>` : `<button class="link-btn" data-act="hint">Indice : la prononciation</button>`}
       <div class="typed" id="typed">${he(s.typed)}${s.answered ? '' : '<span class="caret"></span>'}</div>
       ${s.answered ? '' : keyboard()}`;
     if (!s.answered) dock = `<button class="btn" data-act="giveup">Je ne sais pas</button><button class="btn primary" data-act="check">Vérifier</button>`;
@@ -566,7 +599,8 @@ function finishScreen(base) {
     save();
     const nxt = nextLesson();
     body = `${drawing('book')}<h2 class="center">Leçon terminée</h2>
-      <p class="center muted">Les mots de cette leçon arrivent dans tes révisions dès demain.</p>`;
+      <p class="center muted">Les mots de cette leçon arrivent dans tes révisions dès demain.</p>
+      ${LESSONS[lid].kind === 'lecture' ? `<a class="card link" href="#/atelier"><span class="round">${ic('glasses', { size: 20 })}</span><span class="grow"><h2>Atelier lecture</h2><p class="muted small">Pour continuer à t’entraîner à lire, à volonté.</p></span>${ic('chevron')}</a>` : ''}`;
     dock = `<button class="btn" data-go="#/">Parcours</button>` +
       (nxt && isUnlocked(nxt) ? `<button class="btn primary" data-go="#/lecon/${nxt}/fiche">Leçon suivante</button>` : '');
     return { ...base, body, dock, focus: true };
@@ -651,7 +685,7 @@ route(/^\/mots\/(difficiles|tous|phrases)$/, tab => {
     return { ...base, body };
   }
 
-  const lines = Object.keys(S.lessons).flatMap(lid => LESSONS[lid].reading.map(x => lineCard(x, LESSONS[lid].kind !== 'vocab')));
+  const lines = Object.keys(S.lessons).flatMap(lid => (LESSONS[lid] ? LESSONS[lid].reading : []).map(x => lineCard(x, LESSONS[lid].kind !== 'vocab', '', true)));
   const body = tabs + (lines.length
     ? `<p class="muted small">Les phrases des leçons que tu as terminées : tu peux déjà les dire à tes parents.</p>${lines.join('')}`
     : `<div class="card"><p class="muted">Termine ta première leçon pour voir ici ce que tu sais dire.</p></div>`);
@@ -756,7 +790,7 @@ const CHEAT = [
 
 route(/^\/antiseche$/, () => ({
   title: 'Antisèche d\'appel', back: '#/', tab: 'p',
-  body: CHEAT.map(([t, lines]) => `<h2 style="margin:16px 0 8px">${t}</h2>${lines.map(x => lineCard(x, false)).join('')}`).join('') +
+  body: CHEAT.map(([t, lines]) => `<h2 style="margin:16px 0 8px">${t}</h2>${lines.map(x => lineCard(x, false, '', true)).join('')}`).join('') +
     `<p class="muted small">D'autres phrases s'ajouteront à chaque étape, comme « qu'as-tu fait aujourd'hui ? » à l'étape 4.</p>`,
 }));
 
@@ -769,6 +803,57 @@ route(/^\/bilan\/(\w+)$/, sid => {
     <p>15 questions sur toute l'étape. À partir de 70 % de bonnes réponses, l'étape est validée.</p>
     <p class="muted small">Aucune pénalité : tu peux le refaire autant de fois que tu veux.</p></div>`;
   return { ...base, body, dock: `<button class="btn primary" data-act="start-bilan" data-ref="${sid}">Commencer le bilan</button>` };
+});
+
+// ---------- Atelier lecture ----------
+
+let ate = null; // { level, item, shown }
+
+// Ce qu'on peut lire : tout le parcours avec voyelles ; sans voyelles, seulement ce qu'on a appris.
+function atelierContext() {
+  const isWord = id => !/^(s|v|l)-/.test(id);
+  const words = Object.keys(WORDS).filter(isWord).map(id => WORDS[id]);
+  const lines = [...Object.values(LESSONS).flatMap(l => l.reading), ...CHEAT.flatMap(([, ls]) => ls), ...CULTURE.map(c => c.phrase)];
+  let known = Object.keys(S.cards).filter(isWord);
+  if (known.length < 8) known = STAGES[0].lessons.filter(lid => LESSONS[lid].kind === 'vocab').flatMap(lid => LESSONS[lid].items);
+  let knownLines = [...Object.keys(S.lessons).filter(lid => LESSONS[lid]).flatMap(lid => LESSONS[lid].reading), ...CHEAT.flatMap(([, ls]) => ls)];
+  return { words, lines, knownWords: known.map(id => WORDS[id]), knownLines };
+}
+
+function atelierNext() {
+  const level = S.atelier.level;
+  ate = { level, item: atelierItem(level, atelierContext(), ate && ate.item), shown: false };
+}
+
+route(/^\/atelier$/, () => {
+  const A = S.atelier;
+  if (!ate || ate.level !== A.level) atelierNext();
+  const L = ATELIER_LEVELS[A.level - 1];
+  const pts = A.pts[A.level] || 0;
+  const done = A.level < A.max || pts >= LEVEL_GOAL;
+  const levels = ATELIER_LEVELS.map((x, i) => {
+    const n = i + 1;
+    const cls = n === A.level ? 'on' : n > A.max ? 'locked' : '';
+    return `<button class="${cls}" ${n <= A.max ? `data-act="ate-level" data-ref="${n}"` : 'data-locked-level="1"'} aria-label="Niveau ${n}">${n}</button>`;
+  }).join('');
+  const it = ate.item;
+  const body = `<div class="levels">${levels}</div>
+    <p class="center" style="margin:0"><b>${esc(L.title)}</b></p>
+    <p class="center muted small" style="margin:2px 0 10px">${esc(L.help)}</p>
+    <div class="meter" style="margin:0 auto 4px;max-width:240px"><i style="width:${Math.min(100, pts / LEVEL_GOAL * 100)}%"></i></div>
+    <p class="center muted small" style="margin:0 0 14px">${done
+      ? (A.level < ATELIER_LEVELS.length ? 'Niveau réussi. Continue ici ou passe au suivant.' : 'Dernier niveau réussi, bravo.')
+      : `${pts}/${LEVEL_GOAL} bonnes lectures pour le niveau suivant`}</p>
+    <div class="card reader">
+      ${he(it.he, 'xl')}
+      ${ate.shown
+        ? `<hr><button class="say" data-say-text="${esc(it.say)}" style="justify-content:center">${ic('volume', { size: 20 })}<span class="tr">${esc(it.tr)}</span></button><span class="fr">${esc(it.fr)}</span>`
+        : `<p class="muted small" style="margin:8px 0 0">Lis-le à voix haute ou dans ta tête, puis vérifie.</p>`}
+    </div>`;
+  const dock = ate.shown
+    ? `<button class="btn" data-act="ate-grade" data-ref="bad">Je me suis trompée</button><button class="btn primary" data-act="ate-grade" data-ref="good">Je l’ai bien lu</button>`
+    : `<button class="btn primary" data-act="ate-show">Vérifier</button>`;
+  return { title: 'Atelier lecture', body, dock, back: '#/', focus: true };
 });
 
 // ---------- Mode écouteurs ----------
@@ -791,7 +876,7 @@ route(/^\/ecoute\/(\w+)$/, src => {
   const body = `<div class="player">
     <p class="muted small">${player.i + 1} / ${ids.length}</p>
     <div class="card now">${he(heOf(w, keepNikud(ids[player.i])), 'xl')}
-      ${S.settings.translit ? `<p class="tr">${esc(w.tr)}</p>` : ''}<p class="fr" id="fr-now">${player.phase === 'fr' ? esc(w.fr) : '…'}</p></div>
+      <p class="tr" id="tr-now">${S.settings.translit && player.phase === 'fr' ? esc(w.tr) : ''}</p><p class="fr" id="fr-now">${player.phase === 'fr' ? esc(w.fr) : '…'}</p></div>
     ${S.settings.muted ? '<p class="small">La sourdine est activée : touche l’icône du son en haut pour entendre.</p>' : ''}
     <p class="muted small">L'hébreu, une pause pour répondre dans ta tête, la traduction, puis l'hébreu encore.</p>
   </div>`;
@@ -810,6 +895,8 @@ function playStep() {
     player.phase = 'fr';
     const el = document.getElementById('fr-now');
     if (el) el.textContent = w.fr;
+    const tr = document.getElementById('tr-now');
+    if (tr && S.settings.translit) tr.textContent = w.tr;
     speak(w.fr, 'fr-FR', () => wait(800, () => speak(w.he, 'he-IL', () => wait(1500, () => {
       player.i = (player.i + 1) % player.ids.length;
       playStep();
@@ -927,7 +1014,7 @@ const ACTIONS = {
   flip() { S.session.flipped = true; save(); render(); sayWord(S.session.qs[S.session.i].id); },
   next() {
     const s = S.session;
-    s.i++; s.answered = null; s.typed = ''; s.flipped = false;
+    s.i++; s.answered = null; s.typed = ''; s.flipped = false; s.hint = false;
     if (s.kind !== 'lesson' && s.kind !== 'bilan' && s.i >= s.qs.length) { /* fin du bloc */ }
     save(); render();
   },
@@ -939,6 +1026,7 @@ const ACTIONS = {
     answer(!!t && (t === norm(w.p || w.he) || t === norm(w.he)));
   },
   giveup() { answer(false); },
+  hint() { S.session.hint = true; save(); render(); },
   'start-review'() {
     const ids = dueIds().slice(0, Math.min(BLOCK, dueToday()));
     if (!ids.length) return render();
@@ -963,6 +1051,22 @@ const ACTIONS = {
     startSession('bilan', st.id, qs);
     render();
   },
+  'ate-show'() { ate.shown = true; render(); speak(ate.item.say); },
+  'ate-level'(el) { S.atelier.level = Number(el.dataset.ref); save(); atelierNext(); render(); },
+  'ate-grade'(el) {
+    const A = S.atelier;
+    const pts = A.pts[A.level] || 0;
+    A.pts[A.level] = el.dataset.ref === 'good' ? pts + 1 : Math.max(0, pts - 1);
+    tick();
+    if (A.pts[A.level] >= LEVEL_GOAL && A.level === A.max && A.max < ATELIER_LEVELS.length) {
+      A.max++;
+      A.level = A.max;
+      toast(`Niveau ${A.level} débloqué : ${ATELIER_LEVELS[A.level - 1].title.toLowerCase()}`);
+    }
+    save();
+    atelierNext();
+    render();
+  },
   'c-start'(el) { S.cquiz = { id: el.dataset.ref, i: 0, score: 0, answered: null }; save(); go(`#/culture/${el.dataset.ref}/quiz`); },
   'c-next'() { S.cquiz.i++; S.cquiz.answered = null; save(); render(); },
   'c-add'(el) {
@@ -980,10 +1084,11 @@ document.addEventListener('click', e => {
   if (!el) return;
   const d = el.dataset;
   if (d.locked) { toast('Termine la leçon précédente pour ouvrir celle-ci.'); return; }
+  if (d.lockedLevel) { toast(`Réussis ${LEVEL_GOAL} lectures au niveau d’avant pour ouvrir celui-ci.`); return; }
   if (d.go) { go(d.go); return; }
   if (d.act && ACTIONS[d.act]) { ACTIONS[d.act](el); return; }
-  if (d.say) { sayWord(d.say); return; }
-  if (d.sayText) { speak(d.sayText); return; }
+  if (d.say) { sayWord(d.say); el.closest('.word')?.classList.add('shown'); return; }
+  if (d.sayText) { speak(d.sayText); el.closest('.line')?.classList.add('shown'); return; }
   if (d.star) {
     if (S.hard[d.star]) delete S.hard[d.star]; else S.hard[d.star] = 'manual';
     save();

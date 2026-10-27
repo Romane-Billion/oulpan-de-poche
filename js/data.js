@@ -2,7 +2,7 @@
 // elle diffère du simple retrait des voyelles), tr (prononciation à la française), fr.
 
 export const WORDS = {
-  // Leçon 1 : les voyelles (syllabes sur la lettre מ, puis premiers mots)
+  // Anciennes syllabes de la première leçon (gardées pour les sauvegardes existantes)
   'v-ma': { he: 'מַ', tr: 'ma', fr: 'patah : a' },
   'v-ma2': { he: 'מָ', tr: 'ma', fr: 'kamats : a' },
   'v-me': { he: 'מֶ', tr: 'mé', fr: 'segol : é' },
@@ -12,18 +12,63 @@ export const WORDS = {
   'v-mou': { he: 'מוּ', tr: 'mou', fr: 'shuruk : ou' },
   'v-mou2': { he: 'מֻ', tr: 'mou', fr: 'kubuts : ou' },
   'v-me3': { he: 'מְ', tr: 'me (ou rien)', fr: 'shva : e muet' },
+
+  // Lecture 1 : a et i
+  's-ba': { he: 'בָּ', tr: 'ba', fr: 'kamats : a' },
+  's-la': { he: 'לַ', tr: 'la', fr: 'patah : a' },
+  's-na': { he: 'נָ', tr: 'na', fr: 'kamats : a' },
+  's-ra': { he: 'רַ', tr: 'ra', fr: 'patah : a' },
+  's-di': { he: 'דִּ', tr: 'di', fr: 'hirik : i' },
+  's-li': { he: 'לִי', tr: 'li', fr: 'hirik et yod : i' },
+  's-ti': { he: 'תִּי', tr: 'ti', fr: 'hirik et yod : i' },
+  's-si': { he: 'סִ', tr: 'si', fr: 'hirik : i' },
   'mah': { he: 'מָה', tr: 'ma', fr: 'quoi ?' },
   'mi': { he: 'מִי', tr: 'mi', fr: 'qui ?' },
-  'lo': { he: 'לֹא', tr: 'lo', fr: 'non' },
-  'ken': { he: 'כֵּן', tr: 'ken', fr: 'oui' },
   'ima': { he: 'אִמָּא', tr: 'ima', fr: 'maman' },
   'aba': { he: 'אַבָּא', tr: 'aba', fr: 'papa' },
+  'gam': { he: 'גַּם', tr: 'gam', fr: 'aussi' },
+  'yad': { he: 'יָד', tr: 'yad', fr: 'main' },
+  'dag': { he: 'דָּג', tr: 'dag', fr: 'poisson' },
+  'rak': { he: 'רַק', tr: 'rak', fr: 'seulement' },
+
+  // Lecture 2 : é et e muet
+  's-le': { he: 'לֶ', tr: 'lé', fr: 'segol : é' },
+  's-me': { he: 'מֵ', tr: 'mé', fr: 'tsere : é' },
+  's-bei': { he: 'בֵּי', tr: 'bé', fr: 'tsere et yod : é' },
+  's-ne': { he: 'נֶ', tr: 'né', fr: 'segol : é' },
+  's-re': { he: 'רֵ', tr: 'ré', fr: 'tsere : é' },
+  's-se': { he: 'סֶ', tr: 'sé', fr: 'segol : é' },
+  's-be0': { he: 'בְּ', tr: 'be', fr: 'shva en début de mot : e' },
+  's-le0': { he: 'לְ', tr: 'le', fr: 'shva en début de mot : e' },
+  'ken': { he: 'כֵּן', tr: 'ken', fr: 'oui' },
+  'erev': { he: 'עֶרֶב', tr: 'érev', fr: 'soir' },
+  'lekhem': { he: 'לֶחֶם', tr: 'lékhem', fr: 'pain' },
+  'yeled': { he: 'יֶלֶד', tr: 'yéled', fr: 'enfant, garçon' },
+
+  // Lecture 3 : o et ou
+  's-mo': { he: 'מוֹ', tr: 'mo', fr: 'holam (avec vav) : o' },
+  's-lo': { he: 'לֹ', tr: 'lo', fr: 'holam (point seul) : o' },
+  's-do': { he: 'דּוֹ', tr: 'do', fr: 'holam (avec vav) : o' },
+  's-to': { he: 'טוֹ', tr: 'to', fr: 'holam (avec vav) : o' },
+  's-nou': { he: 'נוּ', tr: 'nou', fr: 'shuruk : ou' },
+  's-rou': { he: 'רוּ', tr: 'rou', fr: 'shuruk : ou' },
+  's-kou': { he: 'כֻּ', tr: 'kou', fr: 'kubuts : ou' },
+  's-sou': { he: 'סֻ', tr: 'sou', fr: 'kubuts : ou' },
+  'lo': { he: 'לֹא', tr: 'lo', fr: 'non' },
   'shalom': { he: 'שָׁלוֹם', tr: 'shalom', fr: 'bonjour, salut, au revoir' },
   'toda': { he: 'תּוֹדָה', tr: 'toda', fr: 'merci' },
   'tov': { he: 'טוֹב', tr: 'tov', fr: 'bien, bon' },
   'yom': { he: 'יוֹם', tr: 'yom', fr: 'jour' },
+  'od': { he: 'עוֹד', tr: 'od', fr: 'encore' },
+  'shuk': { he: 'שׁוּק', tr: 'shouk', fr: 'marché' },
 
-  // Leçon 2 : lettres à deux sons, shin/sin, lettres finales
+  // Lecture 4 : des mots entiers
+  'emet': { he: 'אֱמֶת', tr: 'émet', fr: 'vérité' },
+  'oniya': { he: 'אֳנִיָּה', p: 'אונייה', tr: 'oniya', fr: 'bateau' },
+  'laila': { he: 'לַיְלָה', tr: 'laïla', fr: 'nuit' },
+  'ruakh': { he: 'רוּחַ', tr: 'rouakh', fr: 'vent, esprit' },
+
+  // Leçon : lettres à deux sons, shin/sin, lettres finales
   'bayit': { he: 'בַּיִת', tr: 'bayit', fr: 'maison' },
   'ohevet': { he: 'אוֹהֶבֶת', tr: 'ohevet', fr: "j'aime, tu aimes (au féminin)" },
   'kelev': { he: 'כֶּלֶב', tr: 'kélev', fr: 'chien' },
@@ -114,17 +159,111 @@ export const STAGES = [
     id: 'e1',
     title: 'Étape 1 · Bien lire et saluer',
     goal: '« Salut papa, ça va ? Moi ça va, je suis fatiguée. »',
-    lessons: ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7'],
+    lessons: ['r1', 'r2', 'r3', 'r4', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7'],
   },
 ];
 
 export const LESSONS = {
-  l1: {
-    title: 'Les voyelles (nikoud)',
-    summary: 'À quoi correspond chaque petit point.',
+  r1: {
+    title: 'Lire : les voyelles a et i',
+    summary: 'Patah, kamats et hirik, syllabe par syllabe.',
     kind: 'lecture',
     fiche: [
-      { t: 'p', text: "En hébreu, les voyelles sont de petits signes sous, dans ou au-dessus des lettres. On les appelle le nikoud. Voici chaque signe, posé sur la lettre מ (m)." },
+      { t: 'p', text: "En hébreu, les voyelles sont de petits signes sous, dans ou au-dessus des lettres : le nikoud. On lit toujours la lettre d'abord, puis sa voyelle. On commence par les deux sons les plus fréquents : a et i." },
+      { t: 'table', head: ['Signe', 'Nom', 'Son', 'Exemple'], rows: [
+        ['בַּ', 'patah (un trait)', 'a', 'ba'],
+        ['בָּ', 'kamats (un petit T)', 'a', 'ba'],
+        ['בִּ', 'hirik (un point)', 'i', 'bi'],
+        ['בִּי', 'hirik suivi de י', 'i', 'bi'],
+      ] },
+      { t: 'tip', text: "Le patah et le kamats font exactement le même son « a » en hébreu moderne. Le י après un hirik ne se prononce pas : il allonge juste le « i »." },
+      { t: 'tip', text: "Un ה à la fin d'un mot ne se prononce pas : מָה se lit « ma ». Le א, lui, ne fait jamais de son : il porte seulement la voyelle. אַבָּא = a-ba." },
+      { t: 'p', text: "Méthode : découpe chaque mot en syllabes, une lettre et sa voyelle à la fois. אִמָּא = אִ (i) + מָּ (ma) + א (muet) = ima." },
+    ],
+    examples: ['s-ba', 's-la', 's-di', 's-li', 'aba', 'ima', 'mah', 'mi', 'gam', 'yad', 'dag', 'rak'],
+    reading: [
+      { he: 'אַבָּא, אִמָּא', tr: 'aba, ima', fr: 'Papa, maman' },
+      { he: 'מָה? מִי?', tr: 'ma ? mi ?', fr: 'Quoi ? Qui ?' },
+      { he: 'מִי? סַבָּא!', tr: 'mi ? saba !', fr: 'Qui ? Grand-père !' },
+      { he: 'גַּם אַבָּא, גַּם אִמָּא', tr: 'gam aba, gam ima', fr: 'Papa aussi, maman aussi' },
+      { he: 'רַק דָּג', tr: 'rak dag', fr: 'Seulement du poisson' },
+    ],
+    items: ['s-ba', 's-la', 's-na', 's-ra', 's-di', 's-li', 's-ti', 's-si', 'aba', 'ima', 'mah', 'mi', 'gam', 'yad', 'dag', 'rak', 'saba', 'bat'],
+  },
+
+  r2: {
+    title: 'Lire : é et le e muet',
+    summary: 'Segol, tsere et le shva.',
+    kind: 'lecture',
+    fiche: [
+      { t: 'p', text: "Deux signes font le son « é », et un troisième, le shva, fait un « e » très court, ou rien du tout." },
+      { t: 'table', head: ['Signe', 'Nom', 'Son', 'Exemple'], rows: [
+        ['לֶ', 'segol (trois points)', 'é', 'lé'],
+        ['לֵ', 'tsere (deux points côte à côte)', 'é', 'lé'],
+        ['לֵי', 'tsere suivi de י', 'é', 'lé'],
+        ['לְ', 'shva (deux points l’un sur l’autre)', 'e, ou rien', 'le'],
+      ] },
+      { t: 'tip', text: "Le shva se prononce « e » au début d'un mot : בְּסֵדֶר = be-sé-der. Au milieu ou à la fin d'un mot, il ne se prononce pas : il ferme la syllabe." },
+      { t: 'tip', text: "Ne confonds pas le tsere (deux points couchés, côte à côte) et le shva (deux points debout, l'un sur l'autre)." },
+      { t: 'p', text: "On mélange maintenant a, i et é : יֶלֶד = יֶ (yé) + לֶ (lé) + ד (d) = yéled." },
+    ],
+    examples: ['s-le', 's-me', 's-bei', 's-be0', 'ken', 'ben', 'ze', 'hem', 'erev', 'lekhem', 'yeled', 'beseder'],
+    reading: [
+      { he: 'כֵּן, בְּסֵדֶר.', tr: 'ken, besséder.', fr: "Oui, d'accord." },
+      { he: 'זֶה לֶחֶם.', tr: 'zé lékhem.', fr: "C'est du pain." },
+      { he: 'הֵם בְּסֵדֶר.', tr: 'hem besséder.', fr: 'Ils vont bien.' },
+      { he: 'כֵּן, אַבָּא!', tr: 'ken, aba !', fr: 'Oui, papa !' },
+      { he: 'זֶה יֶלֶד, זֶה בֵּן.', tr: 'zé yéled, zé ben.', fr: "C'est un enfant, c'est un fils." },
+    ],
+    items: ['s-le', 's-me', 's-bei', 's-ne', 's-re', 's-se', 's-be0', 's-le0', 'ken', 'ben', 'ze', 'hem', 'hen', 'erev', 'lekhem', 'yeled', 'beseder'],
+  },
+
+  r3: {
+    title: 'Lire : les voyelles o et ou',
+    summary: 'Holam, shuruk et kubuts : le ו qui chante.',
+    kind: 'lecture',
+    fiche: [
+      { t: 'p', text: "Pour o et ou, la lettre ו (vav) sert souvent de support à la voyelle. Elle ne se prononce alors pas « v »." },
+      { t: 'table', head: ['Signe', 'Nom', 'Son', 'Exemple'], rows: [
+        ['דּוֹ', 'holam : un point au-dessus du ו', 'o', 'do'],
+        ['דֹּ', 'holam : un point seul en haut à gauche', 'o', 'do'],
+        ['דּוּ', 'shuruk : un point dans le ו', 'ou', 'dou'],
+        ['דֻּ', 'kubuts : trois points en biais', 'ou', 'dou'],
+      ] },
+      { t: 'tip', text: "Le ו a donc trois sons : וֹ = o, וּ = ou, et sinon v (וְ = « ve », et). Regarde où est le point : au-dessus, c'est o ; au milieu, c'est ou." },
+      { t: 'tip', text: "Le ע, comme le א, ne se prononce pas : il porte seulement sa voyelle. עוֹד = od." },
+    ],
+    examples: ['s-mo', 's-lo', 's-nou', 's-kou', 'lo', 'tov', 'yom', 'toda', 'shalom', 'hu', 'dod', 'od', 'shuk', 'horim'],
+    reading: [
+      { he: 'שָׁלוֹם! תּוֹדָה!', tr: 'shalom ! toda !', fr: 'Bonjour ! Merci !' },
+      { he: 'יוֹם טוֹב!', tr: 'yom tov !', fr: 'Bonne journée !' },
+      { he: 'לֹא, תּוֹדָה.', tr: 'lo, toda.', fr: 'Non, merci.' },
+      { he: 'הוּא דּוֹד.', tr: 'hou dod.', fr: "C'est un oncle." },
+      { he: 'עוֹד לֶחֶם?', tr: 'od lékhem ?', fr: 'Encore du pain ?' },
+    ],
+    items: ['s-mo', 's-lo', 's-do', 's-to', 's-nou', 's-rou', 's-kou', 's-sou', 'lo', 'tov', 'yom', 'toda', 'shalom', 'hu', 'dod', 'od', 'shuk', 'horim'],
+  },
+
+  r4: {
+    title: 'Lire des mots entiers',
+    summary: 'Découper en syllabes, et les derniers signes.',
+    kind: 'lecture',
+    fiche: [
+      { t: 'p', text: "Pour lire un long mot, découpe-le en syllabes. Chaque syllabe commence par une lettre avec sa voyelle ; une lettre sans voyelle (ou avec un shva) ferme la syllabe d'avant." },
+      { t: 'table', head: ['Mot', 'Syllabes', 'Lecture'], rows: [
+        ['אֲנִי', 'אֲ · נִי', 'a · ni'],
+        ['לַיְלָה', 'לַיְ · לָה', 'laï · la'],
+        ['מִשְׁפָּחָה', 'מִשְׁ · פָּ · חָה', 'mish · pa · kha'],
+        ['לְהִתְרָאוֹת', 'לְ · הִתְ · רָ · אוֹת', 'le · hit · ra · ot'],
+      ] },
+      { t: 'p', text: "Trois signes doubles, surtout sous א, ע, ח et ה, font une voyelle courte :" },
+      { t: 'table', head: ['Signe', 'Nom', 'Son', 'Exemple'], rows: [
+        ['אֲ', 'hataf patah', 'a', 'אֲנִי (ani)'],
+        ['אֱ', 'hataf segol', 'é', 'אֱמֶת (émet)'],
+        ['אֳ', 'hataf kamats', 'o', 'אֳנִיָּה (oniya)'],
+      ] },
+      { t: 'tip', text: "Deux pièges : ַי se lit « aï » (לַיְלָה = laïla). Et un ח avec patah à la fin d'un mot se lit « akh », la voyelle avant la lettre : רוּחַ = rouakh." },
+      { t: 'p', text: "Le tableau complet, à garder sous la main :" },
       { t: 'table', head: ['Signe', 'Nom', 'Son'], rows: [
         ['מַ  מָ', 'patah, kamats', 'a'],
         ['מֶ  מֵ', 'segol, tsere', 'é'],
@@ -132,18 +271,18 @@ export const LESSONS = {
         ['מוֹ  מֹ', 'holam', 'o'],
         ['מוּ  מֻ', 'shuruk, kubuts', 'ou'],
         ['מְ', 'shva', 'e muet, ou rien'],
-        ['אֲ  אֱ  אֳ', 'hataf (voyelles brèves)', 'a, é, o'],
+        ['אֲ  אֱ  אֳ', 'hataf', 'a, é, o'],
       ] },
-      { t: 'tip', text: "À retenir : les signes en dessous font a, é, i. Le point en haut à gauche fait o. Le point dans le ו fait ou. Deux signes différents peuvent faire le même son : c'est normal en hébreu moderne." },
-      { t: 'tip', text: "Le shva (deux points verticaux) se prononce « e » en début de mot (בְּסֵדֶר = besséder), et ne se prononce pas ailleurs." },
     ],
-    examples: ['mah', 'mi', 'lo', 'ken', 'ima', 'aba', 'shalom', 'toda', 'tov', 'yom'],
+    examples: ['ani', 'anakhnu', 'emet', 'oniya', 'laila', 'ruakh', 'savta', 'mishpakha', 'lehitraot'],
     reading: [
-      { he: 'מָה? מִי? לֹא! כֵּן!', tr: 'ma ? mi ? lo ! ken !', fr: 'Quoi ? Qui ? Non ! Oui !' },
-      { he: 'שָׁלוֹם אִמָּא, שָׁלוֹם אַבָּא!', tr: 'shalom ima, shalom aba !', fr: 'Bonjour maman, bonjour papa !' },
-      { he: 'יוֹם טוֹב! תּוֹדָה!', tr: 'yom tov ! toda !', fr: 'Bonne journée ! Merci !' },
+      { he: 'לַיְלָה טוֹב, אִמָּא!', tr: 'laïla tov, ima !', fr: 'Bonne nuit, maman !' },
+      { he: 'אֲנַחְנוּ מִשְׁפָּחָה.', tr: 'anakhnou mishpakha.', fr: 'Nous sommes une famille.' },
+      { he: 'לְהִתְרָאוֹת, אַבָּא!', tr: 'lehitraot, aba !', fr: 'À plus tard, papa !' },
+      { he: 'אֲנִי וְסַבְתָּא', tr: 'ani ve-savta', fr: 'Moi et grand-mère' },
+      { he: 'זֶה אֱמֶת!', tr: 'zé émet !', fr: "C'est vrai !" },
     ],
-    items: ['v-ma', 'v-me', 'v-me2', 'v-mi', 'v-mo', 'v-mou', 'v-mou2', 'v-me3', 'mah', 'mi', 'lo', 'ken', 'ima', 'aba', 'shalom', 'toda', 'tov', 'yom'],
+    items: ['ani', 'anakhnu', 'emet', 'oniya', 'laila', 'ruakh', 'savta', 'mishpakha', 'lehitraot', 'horim', 'erev', 'shalom'],
   },
 
   l2: {
