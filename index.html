@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oulpan de poche</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Oulpan">
+<meta name="theme-color" content="#1f4e8c">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root {
+    --bg: #f7f5f0; --card: #ffffff; --ink: #1c1f26; --quiet: #5f6672;
+    --brand: #1f4e8c; --accent: #f4c458; --good: #2e7d4f; --warn: #b26a00; --line: #e4e0d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14171c; --card: #1e2229; --ink: #eef0f3; --quiet: #a3aab5;
+      --brand: #7fb0f0; --accent: #f4c458; --good: #6fcf97; --warn: #f2b45a; --line: #2e333c; }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font: 17px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 24px);
+    max-width: 560px; margin: 0 auto;
+  }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  header img { width: 48px; height: 48px; border-radius: 12px; }
+  h1 { font-size: 24px; margin: 0; }
+  .sub { color: var(--quiet); margin: 0 0 16px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+  h2 { font-size: 18px; margin: 0 0 8px; }
+  p { margin: 6px 0; }
+  .status { font-weight: 600; }
+  .ok { color: var(--good); } .ko { color: var(--warn); }
+  .he { font-size: 30px; direction: rtl; font-family: "Arial Hebrew", "Times New Roman", serif; }
+  .phrase { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    width: 100%; min-height: 64px; padding: 10px 14px; margin: 8px 0; border-radius: 14px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
+  .phrase:active { transform: scale(0.98); }
+  .phrase small { display: block; color: var(--quiet); font-size: 14px; }
+  .seg { display: flex; gap: 8px; margin: 10px 0; }
+  .seg button, select { flex: 1; min-height: 48px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--ink); font: inherit; }
+  .seg button[aria-pressed="true"] { background: var(--brand); color: #fff; border-color: var(--brand); }
+  ol { padding-left: 20px; margin: 6px 0; }
+  .tip { color: var(--quiet); font-size: 15px; }
+</style>
+</head>
+<body>
+<header>
+  <img src="icons/icon-180.png" alt="">
+  <div><h1>Oulpan de poche</h1></div>
+</header>
+<p class="sub">Page test : on vérifie ton iPhone avant de construire l'appli.</p>
+
+<section>
+  <h2>1. L'icône sur l'écran d'accueil</h2>
+  <p id="install-status" class="status"></p>
+  <div id="install-help">
+    <ol>
+      <li>Ouvre cette page dans <b>Safari</b>.</li>
+      <li>Touche le bouton <b>Partager</b> (le carré avec une flèche vers le haut).</li>
+      <li>Choisis <b>Sur l'écran d'accueil</b>, puis <b>Ajouter</b>.</li>
+      <li>Ouvre l'appli depuis la nouvelle icône.</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <h2>2. La voix en hébreu</h2>
+  <p id="voice-status" class="status">Recherche des voix…</p>
+  <select id="voice-select" aria-label="Voix" hidden></select>
+  <div class="seg" role="group" aria-label="Vitesse">
+    <button id="speed-normal" aria-pressed="true">Normale</button>
+    <button id="speed-slow" aria-pressed="false">Lente</button>
+  </div>
+  <button class="phrase" data-say="שָׁלוֹם"><span><span class="he">שָׁלוֹם</span><small>shalom · bonjour</small></span>🔊</button>
+  <button class="phrase" data-say="מָה שְׁלוֹמְךָ, אַבָּא?"><span><span class="he">מָה שְׁלוֹמְךָ, אַבָּא?</span><small>ma shlomkha, aba ? · comment vas-tu, papa ?</small></span>🔊</button>
+  <button class="phrase" data-say="מָה עָשִׂיתָ הַיּוֹם?"><span><span class="he">מָה עָשִׂיתָ הַיּוֹם?</span><small>ma assita hayom ? · qu'as-tu fait aujourd'hui ?</small></span>🔊</button>
+  <button class="phrase" data-say="אֲנִי אוֹהֶבֶת אֶתְכֶם"><span><span class="he">אֲנִי אוֹהֶבֶת אֶתְכֶם</span><small>ani ohevet etkhem · je vous aime</small></span>🔊</button>
+  <p class="tip">Si la voix est robotique ou absente : Réglages › Accessibilité › Contenu énoncé › Voix › Hébreu, et télécharge la voix « Carmit (améliorée) ». Puis reviens ici.</p>
+</section>
+
+<section>
+  <h2>3. Sans réseau</h2>
+  <p id="offline-status" class="status">Vérification…</p>
+  <p class="tip">Pour tester : une fois l'appli installée et ouverte une fois, mets le mode avion et rouvre-la.</p>
+</section>
+
+<section>
+  <h2>4. Le mode silencieux</h2>
+  <p>Mets ton iPhone en silencieux et touche une phrase au-dessus. Dis-moi si le son sort quand même (avec et sans écouteurs).</p>
+</section>
+
+<script>
+  // 1. Installation
+  const standalone = window.navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+  const installStatus = document.getElementById('install-status');
+  if (standalone) {
+    installStatus.textContent = '✅ Ouverte comme une appli, bravo !';
+    installStatus.className = 'status ok';
+    document.getElementById('install-help').hidden = true;
+  } else {
+    installStatus.textContent = 'Pas encore installée. Voici comment faire :';
+    installStatus.className = 'status ko';
+  }
+
+  // 2. Voix
+  const synth = window.speechSynthesis;
+  const voiceStatus = document.getElementById('voice-status');
+  const voiceSelect = document.getElementById('voice-select');
+  let hebrewVoices = [];
+  let rate = 0.9;
+
+  function loadVoices() {
+    if (!synth) {
+      voiceStatus.textContent = '⚠️ La synthèse vocale n\'est pas disponible ici.';
+      voiceStatus.className = 'status ko';
+      return;
+    }
+    hebrewVoices = synth.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('he'));
+    voiceSelect.innerHTML = '';
+    hebrewVoices.forEach((v, i) => {
+      const o = document.createElement('option');
+      o.value = i;
+      o.textContent = v.name + (v.localService ? '' : ' (en ligne)');
+      voiceSelect.appendChild(o);
+    });
+    voiceSelect.hidden = hebrewVoices.length < 2;
+    if (hebrewVoices.length) {
+      voiceStatus.textContent = '✅ ' + hebrewVoices.length + ' voix hébraïque(s) trouvée(s). Touche une phrase pour l\'écouter.';
+      voiceStatus.className = 'status ok';
+    } else {
+      voiceStatus.textContent = '⚠️ Aucune voix hébraïque trouvée pour l\'instant (voir l\'astuce en bas).';
+      voiceStatus.className = 'status ko';
+    }
+  }
+  if (synth) {
+    loadVoices();
+    synth.addEventListener('voiceschanged', loadVoices);
+  } else {
+    loadVoices();
+  }
+
+  function say(text) {
+    if (!synth) return;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'he-IL';
+    const v = hebrewVoices[Number(voiceSelect.value) || 0];
+    if (v) u.voice = v;
+    u.rate = rate;
+    synth.speak(u);
+  }
+  document.querySelectorAll('[data-say]').forEach(b => b.addEventListener('click', () => say(b.dataset.say)));
+
+  const normal = document.getElementById('speed-normal');
+  const slow = document.getElementById('speed-slow');
+  normal.addEventListener('click', () => { rate = 0.9; normal.setAttribute('aria-pressed', 'true'); slow.setAttribute('aria-pressed', 'false'); });
+  slow.addEventListener('click', () => { rate = 0.6; slow.setAttribute('aria-pressed', 'true'); normal.setAttribute('aria-pressed', 'false'); });
+
+  // 3. Hors-ligne
+  const offlineStatus = document.getElementById('offline-status');
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).then(() => {
+      offlineStatus.textContent = navigator.onLine
+        ? '✅ L\'appli est enregistrée pour fonctionner sans réseau.'
+        : '✅ Tu es hors-ligne et l\'appli s\'ouvre quand même !';
+      offlineStatus.className = 'status ok';
+    }).catch(() => {
+      offlineStatus.textContent = '⚠️ Le mode hors-ligne n\'a pas pu s\'activer.';
+      offlineStatus.className = 'status ko';
+    });
+  } else {
+    offlineStatus.textContent = '⚠️ Le mode hors-ligne n\'est pas pris en charge ici.';
+    offlineStatus.className = 'status ko';
+  }
+</script>
+</body>
+</html>
