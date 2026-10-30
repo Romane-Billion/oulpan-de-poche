@@ -47,11 +47,13 @@ function load() {
   } catch (e) { /* stockage indisponible : on repart de zéro */ }
   return structuredClone(DEFAULT);
 }
-// La première leçon de lecture a été découpée en quatre : on retire l'ancienne.
+// La première leçon de lecture a été découpée en quatre (r1 à r4) : si l'ancienne
+// leçon l1 était faite, ou si une leçon suivante l'est, les quatre comptent comme faites.
 function migrate(s) {
-  delete s.lessons.l1;
-  for (const id of Object.keys(s.cards)) if (id.startsWith('v-') || !WORDS[id]) delete s.cards[id];
-  for (const id of Object.keys(s.hard)) if (id.startsWith('v-') || !WORDS[id]) delete s.hard[id];
+  const old = s.lessons.l1 || ['l2', 'l3', 'l4', 'l5', 'l6', 'l7'].map(l => s.lessons[l]).find(Boolean);
+  if (old) for (const r of ['r1', 'r2', 'r3', 'r4']) if (!s.lessons[r]) s.lessons[r] = { done: old.done };
+  for (const id of Object.keys(s.cards)) if (!WORDS[id]) delete s.cards[id];
+  for (const id of Object.keys(s.hard)) if (!WORDS[id]) delete s.hard[id];
   if (s.resume && !LESSONS[s.resume.lesson]) s.resume = null;
   if (s.session && s.session.qs.some(q => !WORDS[q.id])) s.session = null;
   return s;
